@@ -99,6 +99,14 @@ module RailsAdmin
 
       fields = visible_fields(action, model_config)
       allowed_methods = fields.collect(&:allowed_methods).flatten.uniq.collect(&:to_s) << 'id' << '_destroy'
+      if model_config.abstract_model.model_name == 'Song' && target_params['notes'].is_a?(String)
+        begin
+          parsed_notes = JSON.parse(target_params['notes'])
+        rescue JSON::ParserError => e
+          flash[:error] = "Invalid notes format: #{e.message}"
+          target_params['notes'] = nil 
+        end
+      end
       fields.each { |field| field.parse_input(target_params) }
       target_params.slice!(*allowed_methods)
       target_params.permit! if target_params.respond_to?(:permit!)
